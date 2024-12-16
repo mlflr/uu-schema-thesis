@@ -12,22 +12,9 @@ VALUES
     ('Gladiator', 2000, 'Action'),
     ('Parasite', 2019, 'Thriller'),
     ('Joker', 2019, 'Drama');
-INSERT INTO users (username, email)
-VALUES 
-    ('Alice', 'alice@example.com'),
-    ('Bob', 'bob@example.com'),
-    ('Charlie', 'charlie@example.com'),
-    ('Diana', 'diana@example.com'),
-    ('Eve', 'eve@example.com'),
-    ('Frank', 'frank@example.com'),
-    ('Grace', 'grace@example.com'),
-    ('Hank', 'hank@example.com'),
-    ('Ivy', 'ivy@example.com'),
-    ('Jack', 'jack@example.com');
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
 DELETE FROM movies;
-DELETE FROM users;
 -- +goose StatementEnd
