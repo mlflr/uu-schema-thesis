@@ -3,7 +3,7 @@
 CREATE OR REPLACE FUNCTION handle_movies_write()
 RETURNS TRIGGER AS $$
 DECLARE
-    new_rec movies%ROWTYPE; -- Variable to store new record
+    new_rec movies_v3%ROWTYPE; -- Variable to store new record
 BEGIN
     new_rec.genres := ARRAY[NEW.genre];
     IF TG_TABLE_NAME = 'movies_v2' THEN
@@ -13,7 +13,7 @@ BEGIN
     END IF;
     
     IF TG_OP = 'INSERT' THEN
-      INSERT INTO movies (title, release_year, genres, director, runtime, language, version)
+      INSERT INTO movies_v3 (title, release_year, genres, director, runtime, language, version)
       VALUES (
         NEW.title,
         NEW.release_year,
@@ -23,9 +23,10 @@ BEGIN
         new_rec.language,
         COALESCE(NEW.version, 1)
       )
-      RETURNING * INTO new_rec;
+      RETURNING id, title, release_year, genres, director, runtime, language, created_at, updated_at, version
+      INTO new_rec;
     ELSIF TG_OP = 'UPDATE' THEN
-      UPDATE movies
+      UPDATE movies_v3
       SET title = NEW.title,
         release_year = NEW.release_year,
         -- merge singular v1/v2 genre to existing array to prevent losing data and remove duplicates
@@ -36,10 +37,8 @@ BEGIN
         language = COALESCE(new_rec.language, language),
         version = NEW.version
       WHERE id = OLD.id
-      RETURNING * INTO new_rec;
-    ELSIF TG_OP = 'DELETE' THEN
-      DELETE FROM movies WHERE id = OLD.id;
-      RETURN OLD;
+      RETURNING id, title, release_year, genres, director, runtime, language, created_at, updated_at, version
+      INTO new_rec;
     END IF;
 
     -- these columns could have changed in the process, make sure we return the up to date version
