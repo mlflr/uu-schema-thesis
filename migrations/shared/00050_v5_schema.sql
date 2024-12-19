@@ -12,7 +12,7 @@ CREATE TABLE people (
 CREATE TABLE crew (
     movie_id bigint NOT NULL REFERENCES movies(id) ON DELETE CASCADE, -- Foreign key to movies
     person_id bigint NOT NULL REFERENCES people(id) ON DELETE CASCADE, -- Foreign key to people
-    crew_type text NOT NULL,              -- Role type (e.g., Actor, Director, Producer)
+    crew_type text NOT NULL DEFAULT 'Actor',              -- Role type (e.g., Actor, Director, Producer), default to Actor for compatibility reasons
     role text,                            -- Specific role for actors (e.g., "Maximus Decimus Meridius", "Joker")
     created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),    -- Record creation timestamp
     updated_at timestamp(0) with time zone NOT NULL DEFAULT NOW(), -- Timestamp of when the record was last updated

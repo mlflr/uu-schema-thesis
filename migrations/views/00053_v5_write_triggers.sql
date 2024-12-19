@@ -30,30 +30,33 @@ BEGIN
       INTO NEW;
     END IF;
 
-    -- Insert the director into the people table if not already present
-    -- We can only match by name here, dq risk of matching wrong person with same name,
-    -- but we don't have enough data to match 100%
-    WITH s AS (
-        SELECT id FROM people_v1 WHERE name = NEW.director LIMIT 1
-    ), i as (
-        INSERT INTO people_v1 (name)
-        SELECT NEW.director
-        WHERE NOT EXISTS (SELECT 1 FROM s)
-        RETURNING id
-    )
-    SELECT id FROM i
-    UNION ALL
-    SELECT id FROM s
-    INTO person_id;
 
-    -- Link the movie and director in the crew table
-    INSERT INTO crew (movie_id, person_id, crew_type)
-    VALUES (
-        NEW.id,
-        person_id,
-        'Director'
-    )
-    ON CONFLICT DO NOTHING;
+    IF NEW.director IS NOT NULL THEN
+      -- Insert the director into the people table if not already present
+      -- We can only match by name here, dq risk of matching wrong person with same name,
+      -- but we don't have enough data to match 100%
+      WITH s AS (
+          SELECT id FROM people_v1 WHERE name = NEW.director LIMIT 1
+      ), i as (
+          INSERT INTO people_v1 (name)
+          SELECT NEW.director
+          WHERE NOT EXISTS (SELECT 1 FROM s)
+          RETURNING id
+      )
+      SELECT id FROM i
+      UNION ALL
+      SELECT id FROM s
+      INTO person_id;
+
+      -- Link the movie and director in the crew table
+      INSERT INTO crew (movie_id, person_id, crew_type)
+      VALUES (
+          NEW.id,
+          person_id,
+          'Director'
+      )
+      ON CONFLICT DO NOTHING;
+    END IF;
 
     RETURN NEW;
 END;

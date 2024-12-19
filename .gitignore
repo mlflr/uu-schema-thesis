@@ -25,6 +25,9 @@ go.work.sum
 .env
 .envrc
 
+# vs code config for debugging
+.vscode/
+
 # terraform files
 *.tfstate
 *.tfstate.backup
