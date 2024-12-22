@@ -1,1 +1,15 @@
-../shared/00020_v2_schema.sql
+-- +goose Up
+-- +goose StatementBegin
+
+CREATE TABLE movies_branch_v2 (
+    id bigint PRIMARY KEY, -- Unique identifier for each movie
+    director text,         -- Name of the director
+    runtime integer,       -- Runtime of the movie in minutes
+    language text         -- Language of the movie
+);
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP TABLE IF EXISTS movies_branch_v2;
+-- +goose StatementEnd

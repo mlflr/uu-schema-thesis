@@ -7,6 +7,7 @@ import (
 	v2 "thesis.lefler.eu/internal/data/v2"
 	v3 "thesis.lefler.eu/internal/data/v3"
 	v4 "thesis.lefler.eu/internal/data/v4"
+	v5 "thesis.lefler.eu/internal/data/v5"
 )
 
 type Models struct {
@@ -14,6 +15,7 @@ type Models struct {
 	V2 v2.Models
 	V3 v3.Models
 	V4 v4.Models
+	V5 v5.Models
 }
 
 func NewModels(db *sql.DB) Models {
@@ -22,5 +24,6 @@ func NewModels(db *sql.DB) Models {
 		V2: v2.NewModels(db),
 		V3: v3.NewModels(db),
 		V4: v4.NewModels(db),
+		V5: v5.NewModels(db),
 	}
 }

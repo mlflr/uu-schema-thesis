@@ -12,7 +12,7 @@ func (app *application) routes() http.Handler {
 	router.NotFound = http.HandlerFunc(app.errors.NotFoundResponse)
 	router.MethodNotAllowed = http.HandlerFunc(app.errors.MethodNotAllowedResponse)
 
-	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
+	router.HandlerFunc(http.MethodGet, "/healthcheck", app.healthcheckHandler)
 
 	// v1/movies routes
 	v1Handler := &app.handlers.V1.Movies
@@ -51,6 +51,20 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/v4/actors/:id", v4ActorHandler.GetActorHandler)
 	router.HandlerFunc(http.MethodPatch, "/v4/actors/:id", v4ActorHandler.UpdateActorHandler)
 	router.HandlerFunc(http.MethodDelete, "/v4/actors/:id", v4ActorHandler.DeleteActorHandler)
+
+	// v5/movies routes
+	v5Handler := &app.handlers.V5.Movies
+	v5PersonHandler := &app.handlers.V5.People
+	router.HandlerFunc(http.MethodGet, "/v5/movies", v5Handler.ListMoviesHandler)
+	router.HandlerFunc(http.MethodPost, "/v5/movies", v5Handler.CreateMovieHandler)
+	router.HandlerFunc(http.MethodGet, "/v5/movies/:id", v5Handler.GetMovieHandler)
+	router.HandlerFunc(http.MethodPatch, "/v5/movies/:id", v5Handler.UpdateMovieHandler)
+	router.HandlerFunc(http.MethodDelete, "/v5/movies/:id", v5Handler.DeleteMovieHandler)
+	router.HandlerFunc(http.MethodGet, "/v5/people", v5PersonHandler.ListPeopleHandler)
+	router.HandlerFunc(http.MethodPost, "/v5/people", v5PersonHandler.CreatePersonHandler)
+	router.HandlerFunc(http.MethodGet, "/v5/people/:id", v5PersonHandler.GetPersonHandler)
+	router.HandlerFunc(http.MethodPatch, "/v5/people/:id", v5PersonHandler.UpdatePersonHandler)
+	router.HandlerFunc(http.MethodDelete, "/v5/people/:id", v5PersonHandler.DeletePersonHandler)
 
 	return app.recoverPanic(router)
 }

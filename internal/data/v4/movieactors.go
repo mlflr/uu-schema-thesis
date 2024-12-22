@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"time"
+
+	"thesis.lefler.eu/internal/validator"
 )
 
 type MovieActor struct {
@@ -19,6 +21,15 @@ type MovieActor struct {
 
 type MovieActorModel struct {
 	DB *sql.DB
+}
+
+func ValidateCrew(v *validator.Validator, movieActor *MovieActor) {
+	v.Check(movieActor.MovieID > 0, "movie_id", "must be a positive integer")
+	v.Check(movieActor.ActorID > 0, "actor_id", "must be a positive integer")
+
+	v.Check(movieActor.Role != "", "role", "must be provided")
+	v.Check(len(movieActor.Role) <= 500, "role", "must not be more than 500 bytes long")
+
 }
 
 func (m MovieActorModel) Insert(movieActor *MovieActor) error {
