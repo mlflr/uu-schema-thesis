@@ -1,7 +1,7 @@
-package v2
+package v3
 
 import (
-	data "thesis.lefler.eu/internal/data/v2"
+	data "thesis.lefler.eu/internal/data/views/v3"
 	e "thesis.lefler.eu/internal/error"
 )
 

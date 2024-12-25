@@ -1,22 +1,17 @@
-package v5
+package v2
 
 import (
-	data "thesis.lefler.eu/internal/data/v5"
+	data "thesis.lefler.eu/internal/data/views/v2"
 	e "thesis.lefler.eu/internal/error"
 )
 
 type Handlers struct {
 	Movies MovieHandler
-	People PersonHandler
 }
 
 func NewHandlers(errors *e.Errors, models *data.Models) Handlers {
 	return Handlers{
 		Movies: MovieHandler{
-			errors: errors,
-			models: models,
-		},
-		People: PersonHandler{
 			errors: errors,
 			models: models,
 		},

@@ -1,11 +1,11 @@
-package v5
+package v4
 
 import (
 	"errors"
 	"fmt"
 	"net/http"
 
-	data "thesis.lefler.eu/internal/data/v5"
+	data "thesis.lefler.eu/internal/data/views/v4"
 	e "thesis.lefler.eu/internal/error"
 	util "thesis.lefler.eu/internal/util"
 	"thesis.lefler.eu/internal/validator"
@@ -17,18 +17,18 @@ type MovieHandler struct {
 }
 
 func (handler *MovieHandler) CreateMovieHandler(w http.ResponseWriter, r *http.Request) {
-	type crew struct {
-		PersonID int64  `json:"person_id"`
-		CrewType string `json:"crew_type"`
-		Role     string `json:"role,omitempty"`
+	type actor struct {
+		ActorID int64  `json:"actor_id"`
+		Role    string `json:"role"`
 	}
 	var input struct {
 		Title    string   `json:"title"`
 		Year     int32    `json:"year"`
 		Genres   []string `json:"genres"`
+		Director string   `json:"director"`
 		Runtime  int32    `json:"runtime"`
 		Language string   `json:"language"`
-		Crew     []crew   `json:"crew"`
+		Actors   []actor  `json:"actors"`
 	}
 
 	err := util.ReadJSON(w, r, &input)
@@ -41,27 +41,14 @@ func (handler *MovieHandler) CreateMovieHandler(w http.ResponseWriter, r *http.R
 		Title:    input.Title,
 		Year:     input.Year,
 		Genres:   input.Genres,
+		Director: &input.Director,
 		Runtime:  &input.Runtime,
 		Language: &input.Language,
 	}
 
 	v := validator.New()
 
-	data.ValidateMovie(v, movie)
-
-	movieCrew := make([]*data.Crew, 0, len(input.Crew))
-
-	for _, a := range input.Crew {
-		crewMember := &data.Crew{
-			PersonID: a.PersonID,
-			CrewType: a.CrewType,
-			Role:     a.Role,
-		}
-		data.ValidateCrew(v, crewMember)
-		movieCrew = append(movieCrew, crewMember)
-	}
-
-	if !v.Valid() {
+	if data.ValidateMovie(v, movie); !v.Valid() {
 		handler.errors.FailedValidationResponse(w, r, v.Errors)
 		return
 	}
@@ -72,20 +59,19 @@ func (handler *MovieHandler) CreateMovieHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	for _, a := range input.Crew {
-		if a.PersonID < 1 {
-			handler.errors.BadRequestResponse(w, r, errors.New("invalid person_id"))
+	for _, a := range input.Actors {
+		if a.ActorID < 1 {
+			handler.errors.BadRequestResponse(w, r, errors.New("invalid actor_id"))
 			return
 		}
 
-		crewMember := data.Crew{
-			MovieID:  movie.ID,
-			PersonID: a.PersonID,
-			CrewType: a.CrewType,
-			Role:     a.Role,
+		movieActor := data.MovieActor{
+			MovieID: movie.ID,
+			ActorID: a.ActorID,
+			Role:    a.Role,
 		}
 
-		err = handler.models.Crew.Insert(&crewMember)
+		err = handler.models.MovieActors.Insert(&movieActor)
 		if err != nil {
 			handler.errors.ServerErrorResponse(w, r, err)
 			return
@@ -93,7 +79,7 @@ func (handler *MovieHandler) CreateMovieHandler(w http.ResponseWriter, r *http.R
 	}
 
 	headers := make(http.Header)
-	headers.Set("Location", fmt.Sprintf("/v5/movie/%d", movie.ID))
+	headers.Set("Location", fmt.Sprintf("/v4/movie/%d", movie.ID))
 
 	err = util.WriteJSON(w, http.StatusCreated, util.Envelope{"movie": movie}, headers)
 	if err != nil {
@@ -119,7 +105,7 @@ func (handler *MovieHandler) GetMovieHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	movie.Crew, err = handler.models.Crew.GetForMovie(movie.ID)
+	movie.Actors, err = handler.models.MovieActors.GetForMovie(movie.ID)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -154,18 +140,18 @@ func (handler *MovieHandler) UpdateMovieHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	type crew struct {
-		PersonID int64  `json:"person_id"`
-		CrewType string `json:"crew_type"`
-		Role     string `json:"role,omitempty"`
+	type actor struct {
+		ActorID int64  `json:"actor_id"`
+		Role    string `json:"role"`
 	}
 	var input struct {
 		Title    *string   `json:"title"`
 		Year     *int32    `json:"year"`
 		Genres   *[]string `json:"genres"`
+		Director *string   `json:"director"`
 		Runtime  *int32    `json:"runtime"`
 		Language *string   `json:"language"`
-		Crew     []crew    `json:"crew"`
+		Actors   []actor   `json:"actors"`
 	}
 
 	err = util.ReadJSON(w, r, &input)
@@ -182,6 +168,9 @@ func (handler *MovieHandler) UpdateMovieHandler(w http.ResponseWriter, r *http.R
 	}
 	if input.Genres != nil {
 		movie.Genres = *input.Genres
+	}
+	if input.Director != nil {
+		movie.Director = input.Director
 	}
 	if input.Runtime != nil {
 		movie.Runtime = input.Runtime
@@ -208,20 +197,20 @@ func (handler *MovieHandler) UpdateMovieHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if input.Crew != nil {
-		err = handler.models.Crew.DeleteForMovie(movie.ID)
+	if input.Actors != nil {
+		err = handler.models.MovieActors.DeleteForMovie(movie.ID)
 		if err != nil {
 			handler.errors.ServerErrorResponse(w, r, err)
 			return
 		}
 
-		for _, a := range input.Crew {
-			if a.PersonID < 1 {
-				handler.errors.BadRequestResponse(w, r, errors.New("invalid person_id"))
+		for _, a := range input.Actors {
+			if a.ActorID < 1 {
+				handler.errors.BadRequestResponse(w, r, errors.New("invalid actor_id"))
 				return
 			}
 
-			person, err := handler.models.People.Get(a.PersonID)
+			actor, err := handler.models.Actors.Get(a.ActorID)
 			if err != nil {
 				switch {
 				case errors.Is(err, data.ErrRecordNotFound):
@@ -232,20 +221,19 @@ func (handler *MovieHandler) UpdateMovieHandler(w http.ResponseWriter, r *http.R
 				return
 			}
 
-			crew := data.Crew{
-				MovieID:    movie.ID,
-				PersonID:   a.PersonID,
-				PersonName: person.Name,
-				CrewType:   a.CrewType,
-				Role:       a.Role,
+			movieActor := data.MovieActor{
+				MovieID:   movie.ID,
+				ActorID:   a.ActorID,
+				ActorName: actor.Name,
+				Role:      a.Role,
 			}
 
-			err = handler.models.Crew.Insert(&crew)
+			err = handler.models.MovieActors.Insert(&movieActor)
 			if err != nil {
 				handler.errors.ServerErrorResponse(w, r, err)
 				return
 			}
-			movie.Crew = append(movie.Crew, &crew)
+			movie.Actors = append(movie.Actors, &movieActor)
 		}
 	}
 

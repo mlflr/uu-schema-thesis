@@ -1,29 +1,26 @@
-package v2
+package v5
 
 import (
 	"errors"
 	"fmt"
 	"net/http"
 
-	data "thesis.lefler.eu/internal/data/v2"
+	"cloud.google.com/go/civil"
+	data "thesis.lefler.eu/internal/data/views/v5"
 	e "thesis.lefler.eu/internal/error"
-	util "thesis.lefler.eu/internal/util"
+	"thesis.lefler.eu/internal/util"
 	"thesis.lefler.eu/internal/validator"
 )
 
-type MovieHandler struct {
+type PersonHandler struct {
 	errors *e.Errors
 	models *data.Models
 }
 
-func (handler *MovieHandler) CreateMovieHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *PersonHandler) CreatePersonHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Title    string `json:"title"`
-		Year     int32  `json:"year"`
-		Genre    string `json:"genre"`
-		Director string `json:"director"`
-		Runtime  int32  `json:"runtime"`
-		Language string `json:"language"`
+		Name      string     `json:"name"`      // Person name
+		Birthdate civil.Date `json:"birthdate"` // Person birthdate
 	}
 
 	err := util.ReadJSON(w, r, &input)
@@ -32,45 +29,41 @@ func (handler *MovieHandler) CreateMovieHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	movie := &data.Movie{
-		Title:    input.Title,
-		Year:     input.Year,
-		Genre:    input.Genre,
-		Director: &input.Director,
-		Runtime:  &input.Runtime,
-		Language: &input.Language,
+	person := &data.Person{
+		Name:      input.Name,
+		Birthdate: &input.Birthdate,
 	}
 
 	v := validator.New()
 
-	if data.ValidateMovie(v, movie); !v.Valid() {
+	if data.ValidatePerson(v, person); !v.Valid() {
 		handler.errors.FailedValidationResponse(w, r, v.Errors)
 		return
 	}
 
-	err = handler.models.Movies.Insert(movie)
+	err = handler.models.People.Insert(person)
 	if err != nil {
 		handler.errors.ServerErrorResponse(w, r, err)
 		return
 	}
 
 	headers := make(http.Header)
-	headers.Set("Location", fmt.Sprintf("/v2/movie/%d", movie.ID))
+	headers.Set("Location", fmt.Sprintf("/v5/people/%d", person.ID))
 
-	err = util.WriteJSON(w, http.StatusCreated, util.Envelope{"movie": movie}, headers)
+	err = util.WriteJSON(w, http.StatusCreated, util.Envelope{"person": person}, headers)
 	if err != nil {
 		handler.errors.ServerErrorResponse(w, r, err)
 	}
 }
 
-func (handler *MovieHandler) GetMovieHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *PersonHandler) GetPersonHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := util.ReadIDParam(r)
 	if err != nil {
 		handler.errors.NotFoundResponse(w, r)
 		return
 	}
 
-	movie, err := handler.models.Movies.Get(id)
+	person, err := handler.models.People.Get(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -81,20 +74,20 @@ func (handler *MovieHandler) GetMovieHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err = util.WriteJSON(w, http.StatusOK, util.Envelope{"movie": movie}, nil)
+	err = util.WriteJSON(w, http.StatusOK, util.Envelope{"person": person}, nil)
 	if err != nil {
 		handler.errors.ServerErrorResponse(w, r, err)
 	}
 }
 
-func (handler *MovieHandler) UpdateMovieHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *PersonHandler) UpdatePersonHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := util.ReadIDParam(r)
 	if err != nil {
 		handler.errors.NotFoundResponse(w, r)
 		return
 	}
 
-	movie, err := handler.models.Movies.Get(id)
+	person, err := handler.models.People.Get(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -106,12 +99,8 @@ func (handler *MovieHandler) UpdateMovieHandler(w http.ResponseWriter, r *http.R
 	}
 
 	var input struct {
-		Title    *string `json:"title"`
-		Year     *int32  `json:"year"`
-		Genre    *string `json:"genre"`
-		Director *string `json:"director"`
-		Runtime  *int32  `json:"runtime"`
-		Language *string `json:"language"`
+		Name      *string     `json:"name"`      // Person name
+		Birthdate *civil.Date `json:"birthdate"` // Person birthdate
 	}
 
 	err = util.ReadJSON(w, r, &input)
@@ -120,33 +109,22 @@ func (handler *MovieHandler) UpdateMovieHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if input.Title != nil {
-		movie.Title = *input.Title
+	if input.Name != nil {
+		person.Name = *input.Name
 	}
-	if input.Year != nil {
-		movie.Year = *input.Year
-	}
-	if input.Genre != nil {
-		movie.Genre = *input.Genre
-	}
-	if input.Director != nil {
-		movie.Director = input.Director
-	}
-	if input.Runtime != nil {
-		movie.Runtime = input.Runtime
-	}
-	if input.Language != nil {
-		movie.Language = input.Language
+
+	if input.Birthdate != nil {
+		person.Birthdate = input.Birthdate
 	}
 
 	v := validator.New()
 
-	if data.ValidateMovie(v, movie); !v.Valid() {
+	if data.ValidatePerson(v, person); !v.Valid() {
 		handler.errors.FailedValidationResponse(w, r, v.Errors)
 		return
 	}
 
-	err = handler.models.Movies.Update(movie)
+	err = handler.models.People.Update(person)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrEditConflict):
@@ -157,20 +135,20 @@ func (handler *MovieHandler) UpdateMovieHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	err = util.WriteJSON(w, http.StatusOK, util.Envelope{"movie": movie}, nil)
+	err = util.WriteJSON(w, http.StatusOK, util.Envelope{"person": person}, nil)
 	if err != nil {
 		handler.errors.ServerErrorResponse(w, r, err)
 	}
 }
 
-func (handler *MovieHandler) DeleteMovieHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *PersonHandler) DeletePersonHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := util.ReadIDParam(r)
 	if err != nil {
 		handler.errors.NotFoundResponse(w, r)
 		return
 	}
 
-	err = handler.models.Movies.Delete(id)
+	err = handler.models.People.Delete(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -187,14 +165,14 @@ func (handler *MovieHandler) DeleteMovieHandler(w http.ResponseWriter, r *http.R
 	}
 }
 
-func (handler *MovieHandler) ListMoviesHandler(w http.ResponseWriter, r *http.Request) {
-	movies, err := handler.models.Movies.GetAll()
+func (handler *PersonHandler) ListPeopleHandler(w http.ResponseWriter, r *http.Request) {
+	people, err := handler.models.People.GetAll()
 	if err != nil {
 		handler.errors.ServerErrorResponse(w, r, err)
 		return
 	}
 
-	err = util.WriteJSON(w, http.StatusOK, util.Envelope{"movies": movies}, nil)
+	err = util.WriteJSON(w, http.StatusOK, util.Envelope{"people": people}, nil)
 	if err != nil {
 		handler.errors.ServerErrorResponse(w, r, err)
 	}

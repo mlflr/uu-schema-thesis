@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"cloud.google.com/go/civil"
-	data "thesis.lefler.eu/internal/data/v4"
+	data "thesis.lefler.eu/internal/data/views/v4"
 	e "thesis.lefler.eu/internal/error"
 	"thesis.lefler.eu/internal/util"
 	"thesis.lefler.eu/internal/validator"

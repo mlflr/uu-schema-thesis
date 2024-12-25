@@ -1,11 +1,11 @@
-package v1
+package v3
 
 import (
 	"errors"
 	"fmt"
 	"net/http"
 
-	data "thesis.lefler.eu/internal/data/v1"
+	data "thesis.lefler.eu/internal/data/views/v3"
 	e "thesis.lefler.eu/internal/error"
 	util "thesis.lefler.eu/internal/util"
 	"thesis.lefler.eu/internal/validator"
@@ -18,9 +18,12 @@ type MovieHandler struct {
 
 func (handler *MovieHandler) CreateMovieHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Title string `json:"title"`
-		Year  int32  `json:"year"`
-		Genre string `json:"genre"`
+		Title    string   `json:"title"`
+		Year     int32    `json:"year"`
+		Genres   []string `json:"genres"`
+		Director string   `json:"director"`
+		Runtime  int32    `json:"runtime"`
+		Language string   `json:"language"`
 	}
 
 	err := util.ReadJSON(w, r, &input)
@@ -30,9 +33,12 @@ func (handler *MovieHandler) CreateMovieHandler(w http.ResponseWriter, r *http.R
 	}
 
 	movie := &data.Movie{
-		Title: input.Title,
-		Year:  input.Year,
-		Genre: input.Genre,
+		Title:    input.Title,
+		Year:     input.Year,
+		Genres:   input.Genres,
+		Director: &input.Director,
+		Runtime:  &input.Runtime,
+		Language: &input.Language,
 	}
 
 	v := validator.New()
@@ -49,7 +55,7 @@ func (handler *MovieHandler) CreateMovieHandler(w http.ResponseWriter, r *http.R
 	}
 
 	headers := make(http.Header)
-	headers.Set("Location", fmt.Sprintf("/v1/movie/%d", movie.ID))
+	headers.Set("Location", fmt.Sprintf("/v3/movie/%d", movie.ID))
 
 	err = util.WriteJSON(w, http.StatusCreated, util.Envelope{"movie": movie}, headers)
 	if err != nil {
@@ -100,9 +106,12 @@ func (handler *MovieHandler) UpdateMovieHandler(w http.ResponseWriter, r *http.R
 	}
 
 	var input struct {
-		Title *string `json:"title"`
-		Year  *int32  `json:"year"`
-		Genre *string `json:"genre"`
+		Title    *string   `json:"title"`
+		Year     *int32    `json:"year"`
+		Genres   *[]string `json:"genres"`
+		Director *string   `json:"director"`
+		Runtime  *int32    `json:"runtime"`
+		Language *string   `json:"language"`
 	}
 
 	err = util.ReadJSON(w, r, &input)
@@ -117,8 +126,17 @@ func (handler *MovieHandler) UpdateMovieHandler(w http.ResponseWriter, r *http.R
 	if input.Year != nil {
 		movie.Year = *input.Year
 	}
-	if input.Genre != nil {
-		movie.Genre = *input.Genre
+	if input.Genres != nil {
+		movie.Genres = *input.Genres
+	}
+	if input.Director != nil {
+		movie.Director = input.Director
+	}
+	if input.Runtime != nil {
+		movie.Runtime = input.Runtime
+	}
+	if input.Language != nil {
+		movie.Language = input.Language
 	}
 
 	v := validator.New()
