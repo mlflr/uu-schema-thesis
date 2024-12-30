@@ -3,13 +3,13 @@
 -- Insert directors into the people table
 INSERT INTO people (name)
 SELECT DISTINCT director
-FROM movies
+FROM movies_branch_v2
 WHERE director IS NOT NULL;
 
 -- Link directors to movies in the crew table
 INSERT INTO crew (movie_id, person_id, crew_type)
 SELECT m.id, p.id, 'Director'
-FROM movies m
+FROM movies_branch_v2 m
 JOIN people p ON m.director = p.name;
 
 -- Create a temporary mapping table to link old actor IDs to new person IDs

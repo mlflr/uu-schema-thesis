@@ -103,16 +103,6 @@ func ReadString(qs url.Values, key string, defaultValue string) string {
 	return s
 }
 
-// func readCSV(qs url.Values, key string, defaultValue []string) []string {
-// 	csv := qs.Get(key)
-
-// 	if csv == "" {
-// 		return defaultValue
-// 	}
-
-// 	return strings.Split(csv, ",")
-// }
-
 func ReadInt(qs url.Values, key string, defaultValue int, v *validator.Validator) int {
 	s := qs.Get(key)
 
@@ -126,4 +116,14 @@ func ReadInt(qs url.Values, key string, defaultValue int, v *validator.Validator
 		return defaultValue
 	}
 	return i
+}
+
+func MergeGenres(genre string, genres []string) []string {
+	for _, g := range genres {
+		if g == genre {
+			return genres
+		}
+	}
+
+	return append(genres, genre)
 }

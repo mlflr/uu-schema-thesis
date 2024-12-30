@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 -- Wrap the single genre in an array
-INSERT INTO movies_branch_v3 (id genres)
+INSERT INTO movies_branch_v3 (id, genres)
 SELECT id, ARRAY [genre]
 FROM movies
 WHERE genre IS NOT NULL;

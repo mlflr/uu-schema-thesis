@@ -24,16 +24,14 @@ type config struct {
 	env  string
 	db   struct {
 		dsn struct {
-			views string
+			views           string
+			expandDeprecate string
+			branches        string
 		}
 		maxOpenConns int
 		maxIdleConns int
 		maxIdleTime  time.Duration
 	}
-}
-
-type dbConns struct {
-	views *sql.DB
 }
 
 type application struct {
@@ -50,7 +48,9 @@ func main() {
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
 
-	flag.StringVar(&cfg.db.dsn.views, "db-dsn", os.Getenv("VIEWS_DB_DSN"), "PostgreSQL DSN")
+	flag.StringVar(&cfg.db.dsn.views, "db-dsn-views", os.Getenv("VIEWS_DB_DSN"), "PostgreSQL DSN for Views method")
+	flag.StringVar(&cfg.db.dsn.expandDeprecate, "db-dsn-expand-deprecate", os.Getenv("EXPAND_DEPRECATE_DB_DSN"), "PostgreSQL DSN for Expand & Deprecate method")
+	flag.StringVar(&cfg.db.dsn.branches, "db-dsn-branches", os.Getenv("BRANCHES_DB_DSN"), "PostgreSQL DSN for Branches method")
 
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
@@ -58,21 +58,39 @@ func main() {
 
 	flag.Parse()
 
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
-	dbConns := dbConns{}
+	dbConns := data.DbConns{
+		Views: nil,
+	}
 
-	err := openDB(cfg, cfg.db.dsn.views, dbConns.views, "views")
+	var err error
+
+	dbConns.Views, err = openDB(cfg, cfg.db.dsn.views, "views")
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
 
-	defer dbConns.views.Close()
+	dbConns.ExpandDeprecate, err = openDB(cfg, cfg.db.dsn.expandDeprecate, "expandDeprecate")
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
+	dbConns.Branches, err = openDB(cfg, cfg.db.dsn.branches, "branches")
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
+	defer dbConns.Views.Close()
+	defer dbConns.ExpandDeprecate.Close()
+	defer dbConns.Branches.Close()
 
 	logger.Info("database connection pool established")
 
-	models := data.NewModels(dbConns.views)
+	models := data.NewModels(dbConns)
 	errors := e.NewErrors(logger)
 
 	app := &application{
@@ -99,29 +117,29 @@ func main() {
 	os.Exit(1)
 }
 
-func openDB(cfg config, dsn string, dbConn *sql.DB, method string) error {
+func openDB(cfg config, dsn string, method string) (*sql.DB, error) {
 
 	if dsn == "" {
-		return fmt.Errorf("missing %s DSN", method)
+		return nil, fmt.Errorf("missing %s DSN", method)
 	}
 
-	dbConn, err := sql.Open("postgres", dsn)
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	dbConn.SetMaxOpenConns(cfg.db.maxOpenConns)
-	dbConn.SetMaxIdleConns(cfg.db.maxIdleConns)
-	dbConn.SetConnMaxIdleTime(cfg.db.maxIdleTime)
+	db.SetMaxOpenConns(cfg.db.maxOpenConns)
+	db.SetMaxIdleConns(cfg.db.maxIdleConns)
+	db.SetConnMaxIdleTime(cfg.db.maxIdleTime)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err = dbConn.PingContext(ctx)
+	err = db.PingContext(ctx)
 	if err != nil {
-		dbConn.Close()
-		return err
+		db.Close()
+		return nil, err
 	}
 
-	return nil
+	return db, nil
 }
