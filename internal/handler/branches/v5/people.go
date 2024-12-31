@@ -17,7 +17,7 @@ type PersonHandler struct {
 	models *data.Models
 }
 
-func (handler *PersonHandler) CreatePersonHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *PersonHandler) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Name      string     `json:"name"`      // Person name
 		Birthdate civil.Date `json:"birthdate"` // Person birthdate
@@ -56,7 +56,7 @@ func (handler *PersonHandler) CreatePersonHandler(w http.ResponseWriter, r *http
 	}
 }
 
-func (handler *PersonHandler) GetPersonHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *PersonHandler) GetHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := util.ReadIDParam(r)
 	if err != nil {
 		handler.errors.NotFoundResponse(w, r)
@@ -80,7 +80,7 @@ func (handler *PersonHandler) GetPersonHandler(w http.ResponseWriter, r *http.Re
 	}
 }
 
-func (handler *PersonHandler) UpdatePersonHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *PersonHandler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := util.ReadIDParam(r)
 	if err != nil {
 		handler.errors.NotFoundResponse(w, r)
@@ -141,7 +141,7 @@ func (handler *PersonHandler) UpdatePersonHandler(w http.ResponseWriter, r *http
 	}
 }
 
-func (handler *PersonHandler) DeletePersonHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *PersonHandler) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := util.ReadIDParam(r)
 	if err != nil {
 		handler.errors.NotFoundResponse(w, r)
@@ -165,7 +165,7 @@ func (handler *PersonHandler) DeletePersonHandler(w http.ResponseWriter, r *http
 	}
 }
 
-func (handler *PersonHandler) ListPeopleHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *PersonHandler) ListHandler(w http.ResponseWriter, r *http.Request) {
 	people, err := handler.models.People.GetAll()
 	if err != nil {
 		handler.errors.ServerErrorResponse(w, r, err)

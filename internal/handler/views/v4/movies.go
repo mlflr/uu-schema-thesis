@@ -16,7 +16,7 @@ type MovieHandler struct {
 	models *data.Models
 }
 
-func (handler *MovieHandler) CreateMovieHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *MovieHandler) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	type actor struct {
 		ActorID int64  `json:"actor_id"`
 		Role    string `json:"role"`
@@ -87,7 +87,7 @@ func (handler *MovieHandler) CreateMovieHandler(w http.ResponseWriter, r *http.R
 	}
 }
 
-func (handler *MovieHandler) GetMovieHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *MovieHandler) GetHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := util.ReadIDParam(r)
 	if err != nil {
 		handler.errors.NotFoundResponse(w, r)
@@ -122,7 +122,7 @@ func (handler *MovieHandler) GetMovieHandler(w http.ResponseWriter, r *http.Requ
 	}
 }
 
-func (handler *MovieHandler) UpdateMovieHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *MovieHandler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := util.ReadIDParam(r)
 	if err != nil {
 		handler.errors.NotFoundResponse(w, r)
@@ -243,7 +243,7 @@ func (handler *MovieHandler) UpdateMovieHandler(w http.ResponseWriter, r *http.R
 	}
 }
 
-func (handler *MovieHandler) DeleteMovieHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *MovieHandler) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := util.ReadIDParam(r)
 	if err != nil {
 		handler.errors.NotFoundResponse(w, r)
@@ -267,7 +267,7 @@ func (handler *MovieHandler) DeleteMovieHandler(w http.ResponseWriter, r *http.R
 	}
 }
 
-func (handler *MovieHandler) ListMoviesHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *MovieHandler) ListHandler(w http.ResponseWriter, r *http.Request) {
 	movies, err := handler.models.Movies.GetAll()
 	if err != nil {
 		handler.errors.ServerErrorResponse(w, r, err)

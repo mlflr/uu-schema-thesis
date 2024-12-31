@@ -6,19 +6,19 @@ import (
 
 func (app *application) routesViews(router *httprouter.Router) {
 	// v1/movies routes
-	registerMovieRoutes(router, "views", "v1", &app.handlers.Views.V1.Movies)
+	registerRoutes(router, "views", "v1", "movies", &app.handlers.Views.V1.Movies)
 
 	// v2/movies routes
-	registerMovieRoutes(router, "views", "v2", &app.handlers.Views.V2.Movies)
+	registerRoutes(router, "views", "v2", "movies", &app.handlers.Views.V2.Movies)
 
 	// v3/movies routes
-	registerMovieRoutes(router, "views", "v3", &app.handlers.Views.V3.Movies)
+	registerRoutes(router, "views", "v3", "movies", &app.handlers.Views.V3.Movies)
 
 	// v4/movies and actors routes
-	registerMovieRoutes(router, "views", "v4", &app.handlers.Views.V4.Movies)
-	registerActorRoutes(router, "views", "v4", &app.handlers.Views.V4.Actors)
+	registerRoutes(router, "views", "v4", "movies", &app.handlers.Views.V4.Movies)
+	registerRoutes(router, "views", "v4", "actors", &app.handlers.Views.V4.Actors)
 
 	// v5/movies and people routes
-	registerMovieRoutes(router, "views", "v5", &app.handlers.Views.V5.Movies)
-	registerPersonRoutes(router, "views", "v5", &app.handlers.Views.V5.People)
+	registerRoutes(router, "views", "v5", "movies", &app.handlers.Views.V5.Movies)
+	registerRoutes(router, "views", "v5", "people", &app.handlers.Views.V5.People)
 }

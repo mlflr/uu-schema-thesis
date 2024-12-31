@@ -17,7 +17,7 @@ type ActorHandler struct {
 	models *data.Models
 }
 
-func (handler *ActorHandler) CreateActorHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *ActorHandler) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Name      string     `json:"name"`      // Actor name
 		Birthdate civil.Date `json:"birthdate"` // Actor birthdate
@@ -56,7 +56,7 @@ func (handler *ActorHandler) CreateActorHandler(w http.ResponseWriter, r *http.R
 	}
 }
 
-func (handler *ActorHandler) GetActorHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *ActorHandler) GetHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := util.ReadIDParam(r)
 	if err != nil {
 		handler.errors.NotFoundResponse(w, r)
@@ -80,7 +80,7 @@ func (handler *ActorHandler) GetActorHandler(w http.ResponseWriter, r *http.Requ
 	}
 }
 
-func (handler *ActorHandler) UpdateActorHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *ActorHandler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := util.ReadIDParam(r)
 	if err != nil {
 		handler.errors.NotFoundResponse(w, r)
@@ -141,7 +141,7 @@ func (handler *ActorHandler) UpdateActorHandler(w http.ResponseWriter, r *http.R
 	}
 }
 
-func (handler *ActorHandler) DeleteActorHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *ActorHandler) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := util.ReadIDParam(r)
 	if err != nil {
 		handler.errors.NotFoundResponse(w, r)
@@ -165,7 +165,7 @@ func (handler *ActorHandler) DeleteActorHandler(w http.ResponseWriter, r *http.R
 	}
 }
 
-func (handler *ActorHandler) ListActorsHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *ActorHandler) ListHandler(w http.ResponseWriter, r *http.Request) {
 	actors, err := handler.models.Actors.GetAll()
 	if err != nil {
 		handler.errors.ServerErrorResponse(w, r, err)
