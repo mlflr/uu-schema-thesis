@@ -21,7 +21,7 @@ type Movie struct {
 	Genres    []string  `json:"genres,omitempty"`   // Slice of genres
 	Runtime   *int32    `json:"runtime,omitempty"`  // Runtime in minutes
 	Language  *string   `json:"language,omitempty"` // Language
-	Crew      []*Crew   `json:"actors,omitempty"`   // Slice of actor names
+	Crew      []*Crew   `json:"crew,omitempty"`     // Slice of crew
 	Version   int32     `json:"version"`            // Version number, starts at 1 and increments each time the movie is updated
 }
 
