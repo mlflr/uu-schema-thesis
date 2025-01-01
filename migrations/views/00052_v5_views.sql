@@ -66,7 +66,7 @@ SELECT
     JOIN crew_v1 c ON p.id = c.person_id
     WHERE c.movie_id = m.id AND c.crew_type = 'Director'
     LIMIT 1
-  ), '') AS director,
+  ), NULL) AS director,
   runtime,
   language,
   created_at,
