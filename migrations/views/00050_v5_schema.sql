@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE people (
-    id bigserial PRIMARY KEY,           -- Unique identifier for each person
+    id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,           -- Unique identifier for each person
     name text NOT NULL,                 -- Name of the person
     birthdate date,                     -- Birthdate of the person (optional)
     created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(), -- Record creation timestamp
