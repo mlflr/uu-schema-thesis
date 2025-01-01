@@ -2,6 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE people (
     id bigserial PRIMARY KEY,           -- Unique identifier for each person
+    old_actor_id bigint,                -- Old actor ID from actors table   
     name text NOT NULL,                 -- Name of the person
     birthdate date,                     -- Birthdate of the person (optional)
     created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(), -- Record creation timestamp
